@@ -14,11 +14,11 @@ function NavBar({ onBackClick, selectedMood }) {
         </div>
         <div className="navbar-center">
           <a className="btn btn-ghost text-xl">
-            <h1>{selectedMood ? `Mood: ${selectedMood}` : "Mood2Anime"}</h1>
+            <h1>{selectedMood ? `${selectedMood}` : "Mood2Anime"}</h1>
           </a>
         </div>
         <div className="navbar-end">
-          <button className="btn btn-ghost btn-circle">
+          <button className="btn btn-ghost btn-circle" onClick={onBackClick}>
             <svg
               height={20}
               width={20}

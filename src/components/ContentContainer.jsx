@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import MoodFilter from "./MoodFilter";
 import ContentList from "./ContentList";
+import NavBar from "./NavBar";
+import Footer from "./Footer";
 
 function ContentContainer() {
   const [genres, setGenres] = useState([]);
@@ -12,6 +14,7 @@ function ContentContainer() {
   const [animeList, setAnimeList] = useState([]);
   const [page, setPage] = useState(1);
   const [selectedMood, setSelectedMood] = useState("");
+  const [hiddenAnime, setHiddenAnime] = useState(new Set());
 
   //   fetch genres
   useEffect(() => {
@@ -27,7 +30,7 @@ function ContentContainer() {
     setError(null);
     setLoading(true);
     axios
-      .get("https://api.jikan.moe/v4", {
+      .get("https://api.jikan.moe/v4/anime", {
         params: {
           order_by: "popularity",
           sort: "asc",
@@ -56,19 +59,44 @@ function ContentContainer() {
           ? prev.filter((item) => item !== genreName)
           : [...prev, genreName];
       }
-      const genreID = genres.find((genre) => genre.name === genreName)?.mal_id;
-      return genreID
-        ? prev.includes(genreID)
-          ? prev.filter((id) => id !== genreID)
-          : [...prev, genreID]
+      const genreId = genres.find((genre) => genre.name === genreName)?.mal_id;
+      return genreId
+        ? prev.includes(genreId)
+          ? prev.filter((id) => id !== genreId)
+          : [...prev, genreId]
         : prev;
     });
     setPage(1);
     setShowAnimeContent(true);
+    setSelectedMood(moodName);
+  };
+
+  const handleBackButton = () => {
+    setShowAnimeContent(false);
+    setSelectedGenres([]);
+    setSelectedMood("");
+  };
+
+  const handleNextPage = () => setPage((p) => p + 1);
+  const handlePrevPage = () => setPage((p) => Math.max(p - 1, 1));
+
+  const handleHideClick = (animeId) => {
+    setHiddenAnime((prev) => {
+      const updatedSet = new Set(prev);
+      updatedSet.has(animeId)
+        ? updatedSet.delete(animeId)
+        : updatedSet.add(animeId);
+        return updatedSet
+    });
+    if (animeList.length - 1 === [...hiddenAnime].indexOf(animeId)) {
+      handleNextPage();
+    }
   };
 
   return (
     <div>
+      <NavBar onBackClick={handleBackButton} selectedMood={selectedMood} />
+
       {!showAnimeContent && (
         <MoodFilter selectedGenre={selectedGenres} toggleGenre={toggleGenre} />
       )}
@@ -79,9 +107,15 @@ function ContentContainer() {
             loading={loading}
             error={error}
             page={page}
+            handleNextPage={handleNextPage}
+            handlePrevPage={handlePrevPage}
+            hiddenAnime={hiddenAnime}
+            handleHideClick={handleHideClick}
           />
         </>
       )}
+
+      <Footer />
     </div>
   );
 }
